@@ -4,6 +4,9 @@ package lridx;
 import java.io.File ;
 
 import org.apache.jena.atlas.lib.FileOps ;
+import org.apache.lucene.index.Term ;
+import org.apache.lucene.search.* ;
+import org.apache.lucene.search.BooleanClause.Occur ;
 import org.apache.lucene.store.Directory ;
 import org.apache.lucene.store.FSDirectory ;
 import org.apache.lucene.store.RAMDirectory ;
@@ -13,6 +16,33 @@ import com.hp.hpl.jena.query.ResultSet ;
 public class MainCube {
     
     public static void main(String... argv) throws Exception {
+
+        if ( false )
+        {
+            Query qn1 = NumericRangeQuery.newIntRange("propertyPrice", 1000*1000, null, true, true);
+            Term t = new Term("propertyTown", "LONDON") ;
+            Query qn2 = new TermQuery(t) ;
+
+            BooleanClause bc1 = new BooleanClause(qn1, Occur.MUST) ;
+            BooleanClause bc2 = new BooleanClause(qn2, Occur.MUST) ;
+            
+            BooleanQuery bq = new BooleanQuery() ;
+            bq.add(bc1);
+            bq.add(bc2);
+            
+//            Analyzer analyzer = new KeywordAnalyzer() ;
+//            QueryParser queryParser = new QueryParser(Version.LUCENE_46, "uri", analyzer) ;
+//            queryParser.setAllowLeadingWildcard(true) ;
+//            org.apache.lucene.search.Query query = queryParser.parse(qs1) ;
+            System.out.println(bq ) ;
+
+            System.exit(0) ;
+        }
+        
+        
+        
+        
+        
         boolean needsBuilding = false ;
         
         if ( DeNorm.INDEX != null ) {
@@ -30,7 +60,8 @@ public class MainCube {
                 Builder.build(dir, rs);
             }
             System.out.println("Querying...") ;
-            Access.read(dir) ;
+            String qs = "transactionDate:[ 2005 TO 2008 }" ;
+            Access.read(dir, qs) ;
         }
         System.out.println("DONE") ;
     }

@@ -26,6 +26,7 @@ import java.util.Objects ;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.StrUtils ;
+import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.lucene.analysis.Analyzer ;
 import org.apache.lucene.analysis.core.KeywordAnalyzer ;
@@ -61,7 +62,7 @@ public class Builder {
         
         if ( DeNorm.INDEX != null ) {
             boolean exists = FileOps.exists(DeNorm.INDEX) ;
-            log.info("Exists "+exists) ;
+            log.debug("Exists "+exists) ;
             if ( ! exists ) {
                 FileOps.ensureDir(DeNorm.INDEX);
                 needsBuilding = true ;
@@ -151,7 +152,7 @@ public class Builder {
                     if ( doc != null ) {
                         count++ ;
                         if ( count % 10000 == 0 )
-                            System.out.println(count) ;
+                            FmtLog.info(log, "Docs %,d", count) ;
                         wIdx.addDocument(doc);
                     }
                     current = item ;
@@ -202,7 +203,7 @@ public class Builder {
                 wIdx.addDocument(doc);
             }
         }
-        log.info("Count = "+count);
+        FmtLog.info(log, "Count %,d", count) ;
     }
         
 

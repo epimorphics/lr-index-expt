@@ -50,27 +50,36 @@ public class Access {
             log.error("No index") ;
             System.exit(1) ;
         }
-
-        try (Directory dir = FSDirectory.open(new File(DeNorm.INDEX))) {
-            read(dir);
+        
+        if ( argv.length != 1 ) {
+            log.error("Usage : \"lucene_query\"") ;
+            System.exit(2) ;
         }
-        log.info("DONE") ;
+            
+        String queryString = argv[0] ;
+        
+        try (Directory dir = FSDirectory.open(new File(DeNorm.INDEX))) {
+            read(dir, queryString);
+        }
     }
     
-    static void read(Directory dir) throws Exception {    
+    static void read(Directory dir, String qs) throws Exception {    
         Analyzer analyzer = new KeywordAnalyzer() ;
         IndexReader indexReader = DirectoryReader.open(dir) ;
         IndexSearcher indexSearcher = new IndexSearcher(indexReader) ;
     
         QueryParser queryParser = new QueryParser(Version.LUCENE_46, "uri", analyzer) ;
         queryParser.setAllowLeadingWildcard(true) ;
-        org.apache.lucene.search.Query query = queryParser.parse("transactionDate:[ 2005 TO 2008 }") ;
-        int limit = 100000 ;
+        org.apache.lucene.search.Query query = queryParser.parse(qs) ;
+        
+        
+        // Theer are 19M trasnaction records.
+        int limit = 50*1000*1000 ;
         if ( limit <= 0 )
             limit = 100000 ;
         ScoreDoc[] sDocs = indexSearcher.search(query, limit).scoreDocs ;
-        if ( sDocs.length == 0 )
-            log.info("No hits"); 
+//        if ( sDocs.length == 0 )
+//            log.info("No hits"); 
         for ( ScoreDoc sd : sDocs ) {
             Document doc2 = indexSearcher.doc(sd.doc) ;
             //String[] values = doc2.getValues("uri") ;
