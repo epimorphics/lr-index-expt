@@ -20,8 +20,6 @@ package lridx;
 
 import java.io.File ;
 
-import com.hp.hpl.jena.query.ResultSet ;
-
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.lucene.analysis.Analyzer ;
@@ -31,11 +29,9 @@ import org.apache.lucene.index.DirectoryReader ;
 import org.apache.lucene.index.IndexReader ;
 import org.apache.lucene.queryparser.classic.QueryParser ;
 import org.apache.lucene.search.IndexSearcher ;
-import org.apache.lucene.search.Query ;
 import org.apache.lucene.search.ScoreDoc ;
 import org.apache.lucene.store.Directory ;
 import org.apache.lucene.store.FSDirectory ;
-import org.apache.lucene.store.RAMDirectory ;
 import org.apache.lucene.util.Version ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
@@ -59,8 +55,6 @@ public class Access {
             read(dir);
         }
         log.info("DONE") ;
-        
-        
     }
     
     static void read(Directory dir) throws Exception {    
