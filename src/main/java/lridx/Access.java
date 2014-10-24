@@ -73,7 +73,7 @@ public class Access {
         org.apache.lucene.search.Query query = queryParser.parse(qs) ;
         
         
-        // Theer are 19M trasnaction records.
+        // There are 19M transaction records.
         int limit = 50*1000*1000 ;
         if ( limit <= 0 )
             limit = 100000 ;

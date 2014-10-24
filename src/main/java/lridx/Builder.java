@@ -19,10 +19,7 @@
 package lridx;
 
 import java.io.File ;
-import java.util.ArrayList ;
-import java.util.Iterator ;
-import java.util.List ;
-import java.util.Objects ;
+import java.util.* ;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.StrUtils ;
@@ -80,55 +77,87 @@ public class Builder {
     }
 
     public static ResultSet extract() throws Exception {
-            String type = "lrppi:TransactionRecord" ;
-            String x = StrUtils.strjoinNL
-                (DeNorm.prefixes
-                ,"SELECT * { ?item rdf:type "+type+" ."
-                ,"    ?item ppd:pricePaid ?ppd_pricePaid ."
-                //,"    ?item ppd:hasTransaction ?ppd_hasTransaction ."
-                ,"    ?item ppd:propertyAddress ?ppd_propertyAddress ."
-                ,"    ?item ppd:publishDate ?ppd_publishDate ."
-                ,"    ?item ppd:transactionDate ?ppd_transactionDate ."
-                //,"    ?item ppd:transactionId ?ppd_transactionId"
-                ,"    OPTIONAL { ?item ppd:estateType ?ppd_estateType }"
-                ,"    OPTIONAL { ?item ppd:newBuild ?ppd_newBuild }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:county ?ppd_propertyAddressCounty }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:district ?ppd_propertyAddressDistrict }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:locality ?ppd_propertyAddressLocality }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:paon ?ppd_propertyAddressPaon }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:postcode ?ppd_propertyAddressPostcode }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:saon ?ppd_propertyAddressSaon }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:street ?ppd_propertyAddressStreet }"
-                ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:town ?ppd_propertyAddressTown }"
-                ,"    OPTIONAL { ?item ppd:propertyType ?ppd_propertyType }"
-                ,"    OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }"
-                ,"}"
-                //,"LIMIT 10000"
+        String type = "lrppi:TransactionRecord" ;
+        String x = StrUtils.strjoinNL
+            (DeNorm.prefixes
+             ,"SELECT * { ?item rdf:type "+type+" ."
+             ,"    ?item ppd:pricePaid ?ppd_pricePaid ."
+             //,"    ?item ppd:hasTransaction ?ppd_hasTransaction ."
+             ,"    ?item ppd:propertyAddress ?ppd_propertyAddress ."
+             ,"    ?item ppd:publishDate ?ppd_publishDate ."
+             ,"    ?item ppd:transactionDate ?ppd_transactionDate ."
+             //,"    ?item ppd:transactionId ?ppd_transactionId"
+             ,"    OPTIONAL { ?item ppd:estateType ?ppd_estateType }"
+             ,"    OPTIONAL { ?item ppd:newBuild ?ppd_newBuild }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:county ?ppd_propertyAddressCounty }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:district ?ppd_propertyAddressDistrict }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:locality ?ppd_propertyAddressLocality }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:paon ?ppd_propertyAddressPaon }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:postcode ?ppd_propertyAddressPostcode }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:saon ?ppd_propertyAddressSaon }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:street ?ppd_propertyAddressStreet }"
+             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:town ?ppd_propertyAddressTown }"
+             ,"    OPTIONAL { ?item ppd:propertyType ?ppd_propertyType }"
+             ,"    OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }"
+             ,"}"
+             //,"LIMIT 10000"
                 ) ;
-            com.hp.hpl.jena.query.Query q = QueryFactory.create(x) ;
-            //System.out.println(q) ;
-            //System.exit(0) ;
-            
-            if ( DeNorm.endpoint != null ) {
-                log.info("Remote extraction");
-                QueryExecution qExec = QueryExecutionFactory.sparqlService(DeNorm.endpoint, x) ;
-                return qExec.execSelect() ;
-            } else {
-                log.info("Local extraction"); 
-                Dataset ds = TDBFactory.createDataset(DeNorm.DB) ;
-                ds.getContext().set(TDB.symUnionDefaultGraph, true) ;
-                QueryExecution qExec = QueryExecutionFactory.create(q, ds) ;
-                
-                ResultSet rs = qExec.execSelect() ;
-    //            ResultSetRewindable rsw = ResultSetFactory.makeRewindable(rs) ;
-    //            int c = ResultSetFormatter.consume(rsw) ;
-    //            log.info("Extracted: "+c) ;
-    //            rsw.reset() ;
-    //            rs = rsw ;
-                return rs ;
-            }
-        }
+        com.hp.hpl.jena.query.Query q = QueryFactory.create(x) ;
+        //System.out.println(q) ;
+        //System.exit(0) ;
 
+        if ( DeNorm.endpoint != null ) {
+            log.info("Remote extraction");
+            QueryExecution qExec = QueryExecutionFactory.sparqlService(DeNorm.endpoint, x) ;
+            return qExec.execSelect() ;
+        } else {
+            log.info("Local extraction"); 
+            Dataset ds = TDBFactory.createDataset(DeNorm.DB) ;
+            ds.getContext().set(TDB.symUnionDefaultGraph, true) ;
+            QueryExecution qExec = QueryExecutionFactory.create(q, ds) ;
+
+            ResultSet rs = qExec.execSelect() ;
+            //            ResultSetRewindable rsw = ResultSetFactory.makeRewindable(rs) ;
+            //            int c = ResultSetFormatter.consume(rsw) ;
+            //            log.info("Extracted: "+c) ;
+            //            rsw.reset() ;
+            //            rs = rsw ;
+            return rs ;
+        }
+    }
+
+    /* Record */
+    public static class EntityDetail {
+        
+    }
+
+    
+    public static List<String> entityMap = new ArrayList<>() ;
+    static {
+        String [] x = {
+            "ppd_pricePaid",
+            "ppd_hasTransaction",
+            "ppd_propertyAddress",
+            "ppd_publishDate",
+            "ppd_transactionDate",
+            "ppd_transactionId",
+            "ppd_estateType",
+            "ppd_newBuild",
+            "ppd_propertyType",
+            "ppd_recordStatus",
+
+            "ppd_propertyAddressCounty",
+            "ppd_propertyAddressDistrict",
+            "ppd_propertyAddressLocality",
+            "ppd_propertyAddressPaon",
+            "ppd_propertyAddressPostcode",
+            "ppd_propertyAddressSaon",
+            "ppd_propertyAddressStreet",
+            "ppd_propertyAddressTown"
+        } ;
+        entityMap = Arrays.asList(x) ;
+    }
+    
     public static void build(Directory dir, ResultSet rs) throws Exception {
         String current = null ;
         Document doc = null ;
