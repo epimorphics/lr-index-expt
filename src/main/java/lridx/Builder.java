@@ -19,10 +19,12 @@
 package lridx;
 
 import java.io.File ;
-import java.util.* ;
+import java.util.ArrayList ;
+import java.util.Iterator ;
+import java.util.List ;
+import java.util.Objects ;
 
 import org.apache.jena.atlas.lib.FileOps ;
-import org.apache.jena.atlas.lib.StrUtils ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.lucene.analysis.Analyzer ;
@@ -46,27 +48,34 @@ import com.hp.hpl.jena.rdf.model.Resource ;
 import com.hp.hpl.jena.tdb.TDB ;
 import com.hp.hpl.jena.tdb.TDBFactory ;
 
+import cube.CubeSQL ;
+import cube.DeNorm ;
+
 public class Builder {
 
     static Logger log = LoggerFactory.getLogger(Builder.class) ;
     static { LogCtl.setCmdLogging(); } 
     
+    public static String INDEX = "TEXT" ;
+    public static String DB = "/media/ephemeral0/fuseki/databases/LR-DB" ;
+
+    
     public static void main(String[] args) throws Exception {
         
-        DeNorm.endpoint = null ;
+        CubeSQL.endpoint = null ;
         
         boolean needsBuilding = false ;
         
-        if ( DeNorm.INDEX != null ) {
-            boolean exists = FileOps.exists(DeNorm.INDEX) ;
+        if ( INDEX != null ) {
+            boolean exists = FileOps.exists(INDEX) ;
             log.debug("Exists "+exists) ;
             if ( ! exists ) {
-                FileOps.ensureDir(DeNorm.INDEX);
+                FileOps.ensureDir(INDEX);
                 needsBuilding = true ;
             }                
         }
         
-        try (Directory dir = ( DeNorm.INDEX != null ) ? FSDirectory.open(new File(DeNorm.INDEX)) : new RAMDirectory() ) {
+        try (Directory dir = ( INDEX != null ) ? FSDirectory.open(new File(INDEX)) : new RAMDirectory() ) {
             if ( needsBuilding ) {
                 log.info("Building...") ;
                 ResultSet rs = Builder.extract() ;
@@ -77,42 +86,18 @@ public class Builder {
     }
 
     public static ResultSet extract() throws Exception {
-        String type = "lrppi:TransactionRecord" ;
-        String x = StrUtils.strjoinNL
-            (DeNorm.prefixes
-             ,"SELECT * { ?item rdf:type "+type+" ."
-             ,"    ?item ppd:pricePaid ?ppd_pricePaid ."
-             //,"    ?item ppd:hasTransaction ?ppd_hasTransaction ."
-             ,"    ?item ppd:propertyAddress ?ppd_propertyAddress ."
-             ,"    ?item ppd:publishDate ?ppd_publishDate ."
-             ,"    ?item ppd:transactionDate ?ppd_transactionDate ."
-             //,"    ?item ppd:transactionId ?ppd_transactionId"
-             ,"    OPTIONAL { ?item ppd:estateType ?ppd_estateType }"
-             ,"    OPTIONAL { ?item ppd:newBuild ?ppd_newBuild }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:county ?ppd_propertyAddressCounty }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:district ?ppd_propertyAddressDistrict }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:locality ?ppd_propertyAddressLocality }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:paon ?ppd_propertyAddressPaon }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:postcode ?ppd_propertyAddressPostcode }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:saon ?ppd_propertyAddressSaon }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:street ?ppd_propertyAddressStreet }"
-             ,"    OPTIONAL { ?ppd_propertyAddress lrcommon:town ?ppd_propertyAddressTown }"
-             ,"    OPTIONAL { ?item ppd:propertyType ?ppd_propertyType }"
-             ,"    OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }"
-             ,"}"
-             //,"LIMIT 10000"
-                ) ;
+        String x = DeNorm.queryString() ;
         com.hp.hpl.jena.query.Query q = QueryFactory.create(x) ;
         //System.out.println(q) ;
         //System.exit(0) ;
 
-        if ( DeNorm.endpoint != null ) {
-            log.info("Remote extraction");
-            QueryExecution qExec = QueryExecutionFactory.sparqlService(DeNorm.endpoint, x) ;
+        if ( CubeSQL.endpoint != null ) {
+            //log.info("Remote extraction");
+            QueryExecution qExec = QueryExecutionFactory.sparqlService(CubeSQL.endpoint, x) ;
             return qExec.execSelect() ;
         } else {
-            log.info("Local extraction"); 
-            Dataset ds = TDBFactory.createDataset(DeNorm.DB) ;
+            //log.info("Local extraction"); 
+            Dataset ds = TDBFactory.createDataset(DB) ;
             ds.getContext().set(TDB.symUnionDefaultGraph, true) ;
             QueryExecution qExec = QueryExecutionFactory.create(q, ds) ;
 
@@ -131,33 +116,6 @@ public class Builder {
         
     }
 
-    
-    public static List<String> entityMap = new ArrayList<>() ;
-    static {
-        String [] x = {
-            "ppd_pricePaid",
-            "ppd_hasTransaction",
-            "ppd_propertyAddress",
-            "ppd_publishDate",
-            "ppd_transactionDate",
-            "ppd_transactionId",
-            "ppd_estateType",
-            "ppd_newBuild",
-            "ppd_propertyType",
-            "ppd_recordStatus",
-
-            "ppd_propertyAddressCounty",
-            "ppd_propertyAddressDistrict",
-            "ppd_propertyAddressLocality",
-            "ppd_propertyAddressPaon",
-            "ppd_propertyAddressPostcode",
-            "ppd_propertyAddressSaon",
-            "ppd_propertyAddressStreet",
-            "ppd_propertyAddressTown"
-        } ;
-        entityMap = Arrays.asList(x) ;
-    }
-    
     public static void build(Directory dir, ResultSet rs) throws Exception {
         String current = null ;
         Document doc = null ;

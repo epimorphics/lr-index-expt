@@ -41,12 +41,12 @@ public class Access {
     static { LogCtl.setCmdLogging(); } 
     
     public static void main(String... argv) throws Exception {
-        if ( DeNorm.INDEX == null ) {
+        if ( Builder.INDEX == null ) {
             log.error("Null index") ;
             System.exit(1) ;
         }
         
-        if ( ! FileOps.exists(DeNorm.INDEX) ) {
+        if ( ! FileOps.exists(Builder.INDEX) ) {
             log.error("No index") ;
             System.exit(1) ;
         }
@@ -58,7 +58,7 @@ public class Access {
             
         String queryString = argv[0] ;
         
-        try (Directory dir = FSDirectory.open(new File(DeNorm.INDEX))) {
+        try (Directory dir = FSDirectory.open(new File(Builder.INDEX))) {
             read(dir, queryString);
         }
     }

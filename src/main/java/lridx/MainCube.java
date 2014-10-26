@@ -45,15 +45,15 @@ public class MainCube {
         
         boolean needsBuilding = false ;
         
-        if ( DeNorm.INDEX != null ) {
-            boolean exists = FileOps.exists(DeNorm.INDEX) ;
+        if ( Builder.INDEX != null ) {
+            boolean exists = FileOps.exists(Builder.INDEX) ;
             if ( ! exists ) {
-                FileOps.ensureDir(DeNorm.INDEX);
+                FileOps.ensureDir(Builder.INDEX);
                 needsBuilding = true ;
             }                
         }
         
-        try (Directory dir = ( DeNorm.INDEX != null ) ? FSDirectory.open(new File(DeNorm.INDEX)) : new RAMDirectory() ) {
+        try (Directory dir = ( Builder.INDEX != null ) ? FSDirectory.open(new File(Builder.INDEX)) : new RAMDirectory() ) {
             if ( needsBuilding ) {
                 System.out.println("Building...") ;
                 ResultSet rs = Builder.extract() ;
