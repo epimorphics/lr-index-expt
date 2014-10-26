@@ -16,13 +16,48 @@
  * limitations under the License.
  */
 
-package cube;
+package lridx;
+
+import com.hp.hpl.jena.query.* ;
+import com.hp.hpl.jena.tdb.TDB ;
+import com.hp.hpl.jena.tdb.TDBFactory ;
 
 import org.apache.jena.atlas.lib.StrUtils ;
 
 public class DeNorm {
-  public static final String ppiPrefix = "http://landregistry.data.gov.uk/def/ppi/" ;
-  public static final String prefixes = StrUtils.strjoinNL
+    // Change endpoint and LIMIT
+    
+    public static String endpoint = "http://lr-data-staging.epimorphics.com/landregistry/query" ;
+    public static String DB = "/media/ephemeral0/fuseki/databases/LR-DB" ;
+
+    public static ResultSet extract() throws Exception {
+        String x = DeNorm.queryString() ;
+        com.hp.hpl.jena.query.Query q = QueryFactory.create(x) ;
+        //System.out.println(q) ;
+        //System.exit(0) ;
+
+        if ( DeNorm.endpoint != null ) {
+            //log.info("Remote extraction");
+            QueryExecution qExec = QueryExecutionFactory.sparqlService(DeNorm.endpoint, x) ;
+            return qExec.execSelect() ;
+        } else {
+            //log.info("Local extraction"); 
+            Dataset ds = TDBFactory.createDataset(DeNorm.DB) ;
+            ds.getContext().set(TDB.symUnionDefaultGraph, true) ;
+            QueryExecution qExec = QueryExecutionFactory.create(q, ds) ;
+
+            ResultSet rs = qExec.execSelect() ;
+            //            ResultSetRewindable rsw = ResultSetFactory.makeRewindable(rs) ;
+            //            int c = ResultSetFormatter.consume(rsw) ;
+            //            log.info("Extracted: "+c) ;
+            //            rsw.reset() ;
+            //            rs = rsw ;
+            return rs ;
+        }
+    }
+
+    public static final String ppiPrefix = "http://landregistry.data.gov.uk/def/ppi/" ;
+    public static final String prefixes = StrUtils.strjoinNL
           ("prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
            ,"prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
            ,"prefix owl: <http://www.w3.org/2002/07/owl#>"
@@ -38,35 +73,35 @@ public class DeNorm {
            ,"PREFIX  ppi:  <http://landregistry.data.gov.uk/def/ppi/>"
            ) ;
       /*
-    {
-      ?item ppd:pricePaid ?ppd_pricePaid .
-      ?item ppd:hasTransaction ?ppd_hasTransaction .
-      ?item ppd:propertyAddress ?ppd_propertyAddress .
-      ?item ppd:publishDate ?ppd_publishDate .
-      ?item ppd:transactionDate ?ppd_transactionDate .
-      ?item ppd:transactionId ?ppd_transactionId
-      OPTIONAL { ?item ppd:estateType ?ppd_estateType }
-      OPTIONAL { ?item ppd:newBuild ?ppd_newBuild }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:county ?ppd_propertyAddressCounty }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:district ?ppd_propertyAddressDistrict }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:locality ?ppd_propertyAddressLocality }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:paon ?ppd_propertyAddressPaon }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:postcode ?ppd_propertyAddressPostcode }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:saon ?ppd_propertyAddressSaon }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:street ?ppd_propertyAddressStreet }
-      OPTIONAL { ?ppd_propertyAddress lrcommon:town ?ppd_propertyAddressTown }
-      OPTIONAL { ?item ppd:propertyType ?ppd_propertyType }
-      OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }
-    }
-  */
-  public static String queryString() {
-      String type = "lrppi:TransactionRecord" ;
-      String x = StrUtils.strjoinNL
+        {
+          ?item ppd:pricePaid ?ppd_pricePaid .
+          ?item ppd:hasTransaction ?ppd_hasTransaction .
+          ?item ppd:propertyAddress ?ppd_propertyAddress .
+          ?item ppd:publishDate ?ppd_publishDate .
+          ?item ppd:transactionDate ?ppd_transactionDate .
+          ?item ppd:transactionId ?ppd_transactionId
+          OPTIONAL { ?item ppd:estateType ?ppd_estateType }
+          OPTIONAL { ?item ppd:newBuild ?ppd_newBuild }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:county ?ppd_propertyAddressCounty }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:district ?ppd_propertyAddressDistrict }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:locality ?ppd_propertyAddressLocality }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:paon ?ppd_propertyAddressPaon }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:postcode ?ppd_propertyAddressPostcode }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:saon ?ppd_propertyAddressSaon }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:street ?ppd_propertyAddressStreet }
+          OPTIONAL { ?ppd_propertyAddress lrcommon:town ?ppd_propertyAddressTown }
+          OPTIONAL { ?item ppd:propertyType ?ppd_propertyType }
+          OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }
+        }
+       */
+    public static String queryString() {
+        String type = "lrppi:TransactionRecord" ;
+        String x = StrUtils.strjoinNL
           (DeNorm.prefixes
            ,"SELECT * { ?item rdf:type "+type+" ."
            ,"    ?item ppd:pricePaid ?ppd_pricePaid ."
            //,"    ?item ppd:hasTransaction ?ppd_hasTransaction ."
-           //,"    ?item ppd:propertyAddress ?ppd_propertyAddress ."
+           ,"    ?item ppd:propertyAddress ?ppd_propertyAddress ."  // Include linkage
            ,"    ?item ppd:publishDate ?ppd_publishDate ."
            ,"    ?item ppd:transactionDate ?ppd_transactionDate ."
            ,"    ?item ppd:transactionId ?ppd_transactionId"
@@ -83,7 +118,7 @@ public class DeNorm {
            ,"    OPTIONAL { ?item ppd:propertyType ?ppd_propertyType }"
            ,"    OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }"
            ,"}"
-           ,"LIMIT 1"
+           ,"LIMIT 2"
               ) ;
       return x ;
   }

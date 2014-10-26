@@ -41,15 +41,11 @@ import org.apache.lucene.util.Version ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
-import com.hp.hpl.jena.query.* ;
+import com.hp.hpl.jena.query.QuerySolution ;
+import com.hp.hpl.jena.query.ResultSet ;
 import com.hp.hpl.jena.rdf.model.Literal ;
 import com.hp.hpl.jena.rdf.model.RDFNode ;
 import com.hp.hpl.jena.rdf.model.Resource ;
-import com.hp.hpl.jena.tdb.TDB ;
-import com.hp.hpl.jena.tdb.TDBFactory ;
-
-import cube.CubeSQL ;
-import cube.DeNorm ;
 
 public class Builder {
 
@@ -57,12 +53,10 @@ public class Builder {
     static { LogCtl.setCmdLogging(); } 
     
     public static String INDEX = "TEXT" ;
-    public static String DB = "/media/ephemeral0/fuseki/databases/LR-DB" ;
 
-    
     public static void main(String[] args) throws Exception {
         
-        CubeSQL.endpoint = null ;
+        DeNorm.endpoint = null ;
         
         boolean needsBuilding = false ;
         
@@ -78,38 +72,13 @@ public class Builder {
         try (Directory dir = ( INDEX != null ) ? FSDirectory.open(new File(INDEX)) : new RAMDirectory() ) {
             if ( needsBuilding ) {
                 log.info("Building...") ;
-                ResultSet rs = Builder.extract() ;
+                ResultSet rs = DeNorm.extract() ;
                 Builder.build(dir, rs);
             }
         }
         log.info("DONE") ;
     }
 
-    public static ResultSet extract() throws Exception {
-        String x = DeNorm.queryString() ;
-        com.hp.hpl.jena.query.Query q = QueryFactory.create(x) ;
-        //System.out.println(q) ;
-        //System.exit(0) ;
-
-        if ( CubeSQL.endpoint != null ) {
-            //log.info("Remote extraction");
-            QueryExecution qExec = QueryExecutionFactory.sparqlService(CubeSQL.endpoint, x) ;
-            return qExec.execSelect() ;
-        } else {
-            //log.info("Local extraction"); 
-            Dataset ds = TDBFactory.createDataset(DB) ;
-            ds.getContext().set(TDB.symUnionDefaultGraph, true) ;
-            QueryExecution qExec = QueryExecutionFactory.create(q, ds) ;
-
-            ResultSet rs = qExec.execSelect() ;
-            //            ResultSetRewindable rsw = ResultSetFactory.makeRewindable(rs) ;
-            //            int c = ResultSetFormatter.consume(rsw) ;
-            //            log.info("Extracted: "+c) ;
-            //            rsw.reset() ;
-            //            rs = rsw ;
-            return rs ;
-        }
-    }
 
     /* Record */
     public static class EntityDetail {

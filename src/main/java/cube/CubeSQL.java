@@ -34,12 +34,9 @@ import com.hp.hpl.jena.rdf.model.Resource ;
 public class CubeSQL {
     static Logger log = LoggerFactory.getLogger(CubeSQL.class) ;
 
-    public static String endpoint = "http://lr-data-staging.epimorphics.com/landregistry/query" ;
-    
-
     // Schema
     public static final String STRING = "VARCHAR(255)" ;
-    public static final String DATE = "DATETIME" ;
+    public static final String DATE = "DATE" ;
     public static final String NUMBER = "INT" ;
 
     public static Map<String, String> entityMap = new LinkedHashMap<>() ;
@@ -81,11 +78,20 @@ public class CubeSQL {
         
     }
 
-    public static String build(ResultSet rs) throws Exception {
+    public static void build(ResultSet rs) throws Exception {
         StringBuilder sb = new StringBuilder() ;
+        log.info("Values");
+        int count = 0 ;
 
-        sb.append("INSERT INTO cube VALUES \n") ;
+        System.out.println("INSERT INTO cube VALUES") ;
+        boolean stmtFirst = true ;
         while(rs.hasNext()) {
+            sb.setLength(0); 
+            if ( stmtFirst ) {
+                stmtFirst = false ;
+            } else {
+                sb.append(",\n") ;
+            }
             QuerySolution row = rs.next() ;
             String item = row.getResource("item").getURI() ;
             // Process row
@@ -114,7 +120,7 @@ public class CubeSQL {
             sb.append("( ") ;
             for ( Entry<String, String> e : entityMap.entrySet() ) {
                 if ( ! first ) {
-                    sb.append(",\n  ") ; 
+                    sb.append(", ") ; 
                 }
                 first = false ;
                 String col = e.getKey() ;
@@ -125,17 +131,16 @@ public class CubeSQL {
                     switch(type) {
                         case STRING: sb.append("'"+oStr+"'") ; break ;
                         case NUMBER: sb.append(oStr) ; break ;
-                        case DATE: sb.append("'"+oStr+"'") ; break ; // Convert format
+                        case DATE: sb.append("'"+oStr+"'") ; break ; // Convert format?
                     }
                 } else {
                     sb.append("NULL") ;
                 }
             }
-            sb.append("\n)\n") ;
+            sb.append(" )") ;
+            System.out.print(sb.toString());
         }
-        sb.append(";\n") ;
-        return sb.toString() ;
-        
+        System.out.print("\n;\n") ;
     }
 }
 

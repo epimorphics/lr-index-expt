@@ -1,8 +1,10 @@
 /** Copyrigh Epimoprhics 2014 */
-package lridx;
+package lucene;
 
 import java.io.File ;
 
+import lridx.Builder ;
+import lridx.DeNorm ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.lucene.index.Term ;
 import org.apache.lucene.search.* ;
@@ -13,7 +15,7 @@ import org.apache.lucene.store.RAMDirectory ;
 
 import com.hp.hpl.jena.query.ResultSet ;
 
-public class MainCube {
+public class MainLucene {
     
     public static void main(String... argv) throws Exception {
 
@@ -56,7 +58,7 @@ public class MainCube {
         try (Directory dir = ( Builder.INDEX != null ) ? FSDirectory.open(new File(Builder.INDEX)) : new RAMDirectory() ) {
             if ( needsBuilding ) {
                 System.out.println("Building...") ;
-                ResultSet rs = Builder.extract() ;
+                ResultSet rs = DeNorm.extract() ;
                 Builder.build(dir, rs);
             }
             System.out.println("Querying...") ;

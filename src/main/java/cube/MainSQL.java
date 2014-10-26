@@ -23,23 +23,26 @@ import java.sql.DriverManager ;
 //import java.sql.ResultSet ;
 import java.sql.Statement ;
 
-import com.hp.hpl.jena.query.ResultSet ;
+import lridx.DeNorm ;
 
-import lridx.Builder ;
+import com.hp.hpl.jena.query.ResultSet ;
 
 public class MainSQL {
 
     public static void main(String[] args) throws Exception {
-//        String s = DeNorm.createTableString() ;
-//        System.out.println(s) ;
-//        System.exit(1) ;
+        
+        if ( false ) {
+            // User, no password
+            // CREATE USER 'afs'@'localhost';
+            String s = CubeSQL.createTableString() ;
+            System.out.println(s) ;
+            System.exit(0) ;
+        }
         
         String qs = CubeSQL.createTableString() ;
         
-        ResultSet rs = Builder.extract() ;
-        String s = CubeSQL.build(rs);
-        System.out.println(s) ;
-        
+        ResultSet rs = DeNorm.extract() ;
+        CubeSQL.build(rs);
     }     
     
     

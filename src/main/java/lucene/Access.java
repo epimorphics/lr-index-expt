@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package lridx;
+package lucene;
 
 import java.io.File ;
 
+import lridx.Builder ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.lucene.analysis.Analyzer ;
@@ -63,7 +64,7 @@ public class Access {
         }
     }
     
-    static void read(Directory dir, String qs) throws Exception {    
+    public static void read(Directory dir, String qs) throws Exception {    
         Analyzer analyzer = new KeywordAnalyzer() ;
         IndexReader indexReader = DirectoryReader.open(dir) ;
         IndexSearcher indexSearcher = new IndexSearcher(indexReader) ;
