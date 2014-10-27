@@ -83,18 +83,16 @@ public class CubeSQL {
     public static int LIMIT = 1*1000*1000 ; 
     
     public static void build(PrintStream out, ResultSet rs) throws Exception {
-        StringBuilder sb = new StringBuilder() ;
         //log.info("Values");
         int count = 0 ;
 
         out.println("INSERT INTO LR.cube VALUES") ;
         boolean stmtFirst = true ;
         while(count < LIMIT && rs.hasNext()) {
-            sb.setLength(0); 
             if ( stmtFirst ) {
                 stmtFirst = false ;
             } else {
-                sb.append(",\n") ;
+                out.print(",\n") ;
             }
             QuerySolution row = rs.next() ;
             count++ ;
@@ -122,10 +120,10 @@ public class CubeSQL {
              */
 
             boolean first = true ;
-            sb.append("( ") ;
+            out.print("( ") ;
             for ( Entry<String, String> e : entityMap.entrySet() ) {
                 if ( ! first ) {
-                    sb.append(", ") ; 
+                    out.print(", ") ; 
                 }
                 first = false ;
                 
@@ -137,16 +135,15 @@ public class CubeSQL {
                     String oStr = (o.isLiteral()) ? ((Literal)o).getLexicalForm() : ((Resource)o).getURI() ;
                     oStr = fixup(oStr) ;
                     switch(type) {
-                        case STRING: sb.append("'"+oStr+"'") ; break ;
-                        case NUMBER: sb.append(oStr) ; break ;
-                        case DATE: sb.append("'"+oStr+"'") ; break ; // Convert format?
+                        case STRING: out.print("'"+oStr+"'") ; break ;
+                        case NUMBER: out.print(oStr) ; break ;
+                        case DATE: out.print("'"+oStr+"'") ; break ; // Convert format?
                     }
                 } else {
-                    sb.append("NULL") ;
+                    out.print("NULL") ;
                 }
             }
-            sb.append(" )") ;
-            out.print(sb.toString());
+            out.print(" )") ;
         }
         out.print("\n;\n") ;
     }

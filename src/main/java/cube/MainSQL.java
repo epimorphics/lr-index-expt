@@ -34,7 +34,7 @@ public class MainSQL {
 
     public static void main(String[] args) throws Exception {
         
-        if ( true ) {
+        if ( false ) {
             DeNorm.endpoint = null ;
             DeNorm.LIMIT = -1 ;
         }
