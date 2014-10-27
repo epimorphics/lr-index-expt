@@ -122,7 +122,6 @@ public class CubeSQL {
              */
 
             boolean first = true ;
-            System.out.println("row = "+row) ;
             sb.append("( ") ;
             for ( Entry<String, String> e : entityMap.entrySet() ) {
                 if ( ! first ) {
@@ -132,9 +131,6 @@ public class CubeSQL {
                 
                 String col = e.getKey() ;
                 String type = e.getValue() ;
-                
-                System.out.println("col = "+col) ;
-                System.out.println("contains: "+row.contains(col)) ;
                 
                 if ( row.contains(col) ) {
                     RDFNode o = row.get(col) ;
@@ -158,7 +154,7 @@ public class CubeSQL {
     private static String fixup(String s) {
         s = s.replace("'",  "\\'") ;
         s = s.replace("\"",  "\\\"") ;
-        return null ;
+        return s ;
     }
 }
 
