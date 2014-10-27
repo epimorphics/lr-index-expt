@@ -18,6 +18,7 @@
 
 package cube;
 
+import java.io.PrintStream ;
 import java.util.LinkedHashMap ;
 import java.util.Map ;
 import java.util.Map.Entry ;
@@ -41,6 +42,7 @@ public class CubeSQL {
 
     public static Map<String, String> entityMap = new LinkedHashMap<>() ;
     static {
+        entityMap.put("item", STRING) ;
         entityMap.put("ppd_pricePaid", NUMBER) ;
         //entityMap.put("ppd_hasTransaction",null) ;
         //entityMap.put("ppd_propertyAddress",null) ;
@@ -78,14 +80,16 @@ public class CubeSQL {
         
     }
 
-    public static void build(ResultSet rs) throws Exception {
+    public static int LIMIT = 1*1000*1000 ; 
+    
+    public static void build(PrintStream out, ResultSet rs) throws Exception {
         StringBuilder sb = new StringBuilder() ;
-        log.info("Values");
+        //log.info("Values");
         int count = 0 ;
 
-        System.out.println("INSERT INTO cube VALUES") ;
+        out.println("INSERT INTO LR.cube VALUES") ;
         boolean stmtFirst = true ;
-        while(rs.hasNext()) {
+        while(count < LIMIT && rs.hasNext()) {
             sb.setLength(0); 
             if ( stmtFirst ) {
                 stmtFirst = false ;
@@ -93,7 +97,8 @@ public class CubeSQL {
                 sb.append(",\n") ;
             }
             QuerySolution row = rs.next() ;
-            String item = row.getResource("item").getURI() ;
+            count++ ;
+            
             // Process row
             /*
                     ?ppd_pricePaid
@@ -117,17 +122,24 @@ public class CubeSQL {
              */
 
             boolean first = true ;
+            System.out.println("row = "+row) ;
             sb.append("( ") ;
             for ( Entry<String, String> e : entityMap.entrySet() ) {
                 if ( ! first ) {
                     sb.append(", ") ; 
                 }
                 first = false ;
+                
                 String col = e.getKey() ;
                 String type = e.getValue() ;
+                
+                System.out.println("col = "+col) ;
+                System.out.println("contains: "+row.contains(col)) ;
+                
                 if ( row.contains(col) ) {
                     RDFNode o = row.get(col) ;
                     String oStr = (o.isLiteral()) ? ((Literal)o).getLexicalForm() : ((Resource)o).getURI() ;
+                    oStr = fixup(oStr) ;
                     switch(type) {
                         case STRING: sb.append("'"+oStr+"'") ; break ;
                         case NUMBER: sb.append(oStr) ; break ;
@@ -138,9 +150,15 @@ public class CubeSQL {
                 }
             }
             sb.append(" )") ;
-            System.out.print(sb.toString());
+            out.print(sb.toString());
         }
-        System.out.print("\n;\n") ;
+        out.print("\n;\n") ;
+    }
+
+    private static String fixup(String s) {
+        s = s.replace("'",  "\\'") ;
+        s = s.replace("\"",  "\\\"") ;
+        return null ;
     }
 }
 

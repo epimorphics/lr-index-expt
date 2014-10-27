@@ -94,6 +94,7 @@ public class DeNorm {
           OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }
         }
        */
+    public static int LIMIT = 2 ;
     public static String queryString() {
         String type = "lrppi:TransactionRecord" ;
         String x = StrUtils.strjoinNL
@@ -118,8 +119,10 @@ public class DeNorm {
            ,"    OPTIONAL { ?item ppd:propertyType ?ppd_propertyType }"
            ,"    OPTIONAL { ?item ppd:recordStatus ?ppd_recordStatus }"
            ,"}"
-           ,"LIMIT 2"
               ) ;
+        if ( LIMIT > 0 )
+            x = x+"\nLIMIT "+LIMIT ;
+        
       return x ;
   }
 

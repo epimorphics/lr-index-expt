@@ -18,6 +18,9 @@
 
 package cube;
 
+import java.io.FileOutputStream ;
+import java.io.OutputStream ;
+import java.io.PrintStream ;
 import java.sql.Connection ;
 import java.sql.DriverManager ;
 //import java.sql.ResultSet ;
@@ -32,6 +35,11 @@ public class MainSQL {
     public static void main(String[] args) throws Exception {
         
         if ( false ) {
+            DeNorm.endpoint = null ;
+            DeNorm.LIMIT = 10 ;
+        }
+        
+        if ( false ) {
             // User, no password
             // CREATE USER 'afs'@'localhost';
             String s = CubeSQL.createTableString() ;
@@ -42,7 +50,18 @@ public class MainSQL {
         String qs = CubeSQL.createTableString() ;
         
         ResultSet rs = DeNorm.extract() ;
-        CubeSQL.build(rs);
+        int filecount = 0 ;
+        String fileroot = "data-" ;
+        
+        while(rs.hasNext()) {
+            String fn = fileroot+(filecount++) ;
+            System.out.println(fn) ;
+            try (OutputStream x = new FileOutputStream(fn); PrintStream px = new PrintStream(x)) {
+                CubeSQL.build(px, rs) ;
+            }
+        }
+        System.out.println("DONE") ;
+        
     }     
     
     
