@@ -66,14 +66,17 @@ public class CubeSQL {
     
     public static String createTableString() {
         StringBuilder sb = new StringBuilder() ;
-        sb.append("TRUNCATE TABLE cube ;\n") ;
+        // sb.append("TRUNCATE TABLE cube ;\n") ;
         sb.append("CREATE TABLE cube (\n") ;
         boolean first = true ;
+        
         for ( Entry<String, String> e : entityMap.entrySet() ) {
             if ( ! first )
                 sb.append(" ,\n") ;
             first = false ;
             sb.append("    "+e.getKey()+" "+e.getValue()) ;
+            if ( e.getKey().equals("item") )
+                sb.append("  NOT NULL PRIMARY KEY") ;
         }
         sb.append("\n) ; ") ;
         return sb.toString() ;

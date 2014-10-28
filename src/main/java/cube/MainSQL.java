@@ -34,11 +34,18 @@ public class MainSQL {
 
     public static void main(String[] args) throws Exception {
         
+        PrintStream out = System.out ;
         if ( false ) {
+            // Running on lr-data-staging
             DeNorm.endpoint = null ;
             DeNorm.LIMIT = -1 ;
+            out = null ;
+        } else {
+            // Running against a remote endpoint 
+            DeNorm.endpoint = "http://lr-data-staging.epimorphics.com/landregistry/query" ;
+            DeNorm.LIMIT = 2 ;
         }
-        
+            
         if ( false ) {
             // User, no password
             // CREATE USER 'afs'@'localhost';
@@ -51,19 +58,20 @@ public class MainSQL {
         
         ResultSet rs = DeNorm.extract() ;
         int filecount = 0 ;
-        String fileroot = "data-" ;
         
+        String fileroot = "data-" ;
         while(rs.hasNext()) {
-            String fn = fileroot+(filecount++) ;
-            System.out.println(fn) ;
-            try (OutputStream x = new FileOutputStream(fn); PrintStream px = new PrintStream(x)) {
-                CubeSQL.build(px, rs) ;
+            if ( out == null ) {
+                String fn = fileroot+(filecount++) ;
+                System.out.println(fn) ;
+                OutputStream x = new FileOutputStream(fn); 
+                out = new PrintStream(x) ;
             }
+
+            CubeSQL.build(out, rs) ;
         }
         System.out.println("DONE") ;
-        
-    }     
-    
+    }
     
     public static void misc() throws Exception {        
         String url = "jdbc:mysql://localhost/LR";
